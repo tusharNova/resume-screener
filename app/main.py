@@ -2,6 +2,7 @@ from fastapi import FastAPI ,File , UploadFile ,Form
 from fastapi.responses import JSONResponse
 from typing import Union
 from app.resume_parser import extract_text_from_pdf
+from app.match import compare_resume_to_jd
 
 app = FastAPI()
 
@@ -22,11 +23,12 @@ async def upload_resume(resume : UploadFile = File(...) , job_description : str 
     else:
         resume_text = "Only PDF format supported (for now)."
         
-    # TODO: Call parsing + matching logic here
-
+    result = compare_resume_to_jd(resume_text, job_description)
 
     return JSONResponse(content={
-        "filename" : resume.filename,
-        "job_description" : job_description[:100] + "...",
-        "Message" : "Resume uploaded successfully. Parsing and matching will be added soon."
+        "filename": resume.filename,
+        "match_score": result["match_score"],
+        "matched_keywords": result["matched_keywords"],
+        "missing_keywords": result["missing_keywords"],
+        "suggestions": result["suggestions"]
     })
