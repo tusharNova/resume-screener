@@ -1,20 +1,26 @@
-import spacy
-from fuzzywuzzy import fuzzz
+# app/matcher.py
 
-npl = spacy.load("en_core_web_sm")
+import spacy
+from fuzzywuzzy import fuzz
+
+
+nlp = spacy.load("en_core_web_sm")
+
 
 
 COMMON_SKILLS = [
-    "python""python", "django", "flask", "fastapi", "sql", "mysql", "postgresql", "git", "docker",
+    "python", "django", "flask", "fastapi", "sql", "mysql", "postgresql", "git", "docker",
     "rest", "api", "html", "css", "javascript", "react", "linux", "aws"
 ]
 
-
-def extract_keywords(text : str):
-    doc = npl(text.lower)
+def extract_keywords(text: str):
+    
+    doc = nlp(text.lower())
     words = set([token.lemma_ for token in doc if token.is_alpha and not token.is_stop])
     matched = [skill for skill in COMMON_SKILLS if skill in words]
+    print(matched)
     return matched
+
 
 def compare_resume_to_jd(resume_text: str, jd_text: str):
     resume_keywords = extract_keywords(resume_text)
