@@ -4,9 +4,12 @@ from fastapi.templating import Jinja2Templates
 from typing import Union
 from app.resume_parser import extract_text_from_pdf ,extract_text_from_file
 from app.match import compare_resume_to_jd
+import os
 
 
-templates = Jinja2Templates(directory="templates")
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+templates = Jinja2Templates(directory=os.path.join(BASE_DIR, "..", "templates"))
+
 app = FastAPI()
 
 

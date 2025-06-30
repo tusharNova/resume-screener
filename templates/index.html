@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <title>Resume Screener</title>
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet" />
+</head>
+
+<body class="bg-gray-100 p-8">
+    <div class="max-w-xl mx-auto bg-white p-6 rounded-lg shadow-md">
+        <h1 class="text-2xl font-bold mb-4 text-center">AI Resume Screener</h1>
+
+        <form id="resumeForm" class="space-y-4">
+            <input type="file" name="resume" id="resume" accept=".pdf,.docx" required
+                class="block w-full p-2 border rounded" />
+
+            <textarea name="job_description" id="job_description" rows="6" placeholder="Paste job description here..."
+                required class="block w-full p-2 border rounded"></textarea>
+
+            <button type="submit" class="w-full bg-blue-600 text-white py-2 px-4 rounded hover:bg-blue-700">
+                Analyze
+            </button>
+        </form>
+
+        <div id="result" class="mt-6 hidden bg-gray-50 p-4 rounded shadow-inner">
+            <h2 class="font-semibold mb-2">Result:</h2>
+            <p><strong>Match Score:</strong> <span id="score"></span>%</p>
+            <p><strong>Matched Keywords:</strong> <span id="matched"></span></p>
+            <p><strong>Missing Keywords:</strong> <span id="missing"></span></p>
+            <p><strong>Suggestions:</strong> <span id="suggestions"></span></p>
+        </div>
+    </div>
+
+    <script>
+        const form = document.getElementById("resumeForm");
+        const resultBox = document.getElementById("result");
+        form.addEventListener("submit", async (e) => {
+            e.preventDefault();
+            const formData = new FormData(form);
+
+            const response = await fetch("/upload-resume/", {
+                method: "POST",
+                body: formData,
+            });
+
+            if (!response.ok) {
+                alert("Error: " + (await response.text()));
+                return;
+            }
+
+            const data = await response.json();
+
+            document.getElementById("score").textContent = data.match_score;
+            document.getElementById("matched").textContent =
+                data.matched_keywords.join(", ");
+            document.getElementById("missing").textContent =
+                data.missing_keywords.join(", ");
+            document.getElementById("suggestions").textContent = data.suggestions;
+            resultBox.classList.remove("hidden");
+        });
+    </script>
+</body>
+
+</html>
