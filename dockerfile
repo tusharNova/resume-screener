@@ -2,11 +2,10 @@ FROM python:3.10-slim
 
 WORKDIR /app
 
-RUN apt-get update && apt-get install -y build-essential
 
 COPY . .
 
-RUN pip install --mo-cache-dir -r requirements.txt
+RUN pip install --no-cache-dir -r requirements.txt
 
 RUN python -m spacy download en_core_web_sm
 
