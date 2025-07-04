@@ -9,15 +9,24 @@ from reportlab.lib.pagesizes import letter
 from reportlab.pdfgen import canvas
 import io
 from fastapi.responses import StreamingResponse
-
 from dotenv import load_dotenv
+
+from sqlmodel import Session , SQLModel ,create_engine
+from app.models import  ResumeMatchResult
+
+
 
 APP_NAME = os.getenv("APP_NAME")
 print(f"Starting {APP_NAME}...")
 
+# createing the data file fdo result stroed
+DATABASE_URL = "sqlite:///./resume.db"
+engine = create_engine(DATABASE_URL , echo=False)
 
+def create_db_and_tables():
+    SQLModel.metadata.create_all(engine)
 
-
+# for the connection of index,html to app
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 templates = Jinja2Templates(directory=os.path.join(BASE_DIR, "..", "templates"))
 
@@ -39,6 +48,18 @@ async def upload_resume(resume: UploadFile = File(...), job_description: str = F
 
         result = compare_resume_to_jd(resume_text, job_description)
         result["filename"] = resume.filename
+        # for database result stord
+        resume_record = ResumeMatchResult(
+            filename=resume.filename,
+            match_score=result["match_score"],
+            matched_keywords=",".join(result["matched_keywords"]),
+            missing_keywords=",".join(result["missing_keywords"]),
+            suggestions=result["suggestions"],
+        )
+
+        with Session(engine) as session:
+            session.add(resume_record)
+            session.commit()
 
         return result
     
@@ -69,5 +90,11 @@ def export_pdf(data : dict = Body(...)):
     buffer.seek(0)
     return StreamingResponse(buffer , media_type="application/json" , headers={"Content-Disposition": "attachment;          filename=resume_report.pdf"
     })
-
 # json ,pyqt5 , fastapi , postman
+
+
+@app.on_event("startup")
+def on_startup():
+    create_db_and_tables()
+
+    
